@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Yolka", "Yolka\Yolka.cproj", "{55432527-995F-48C6-9B2B-D4521E693FBA}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "YolkaBootloader", "YolkaBootloader\YolkaBootloader.cproj", "{EB5C4CC2-5191-44BF-A51F-7FA3CCCF967D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{55432527-995F-48C6-9B2B-D4521E693FBA}.Debug|AVR.ActiveCfg = Debug|AVR
+		{55432527-995F-48C6-9B2B-D4521E693FBA}.Debug|AVR.Build.0 = Debug|AVR
+		{55432527-995F-48C6-9B2B-D4521E693FBA}.Release|AVR.ActiveCfg = Release|AVR
+		{55432527-995F-48C6-9B2B-D4521E693FBA}.Release|AVR.Build.0 = Release|AVR
+		{EB5C4CC2-5191-44BF-A51F-7FA3CCCF967D}.Debug|AVR.ActiveCfg = Debug|AVR
+		{EB5C4CC2-5191-44BF-A51F-7FA3CCCF967D}.Debug|AVR.Build.0 = Debug|AVR
+		{EB5C4CC2-5191-44BF-A51F-7FA3CCCF967D}.Release|AVR.ActiveCfg = Release|AVR
+		{EB5C4CC2-5191-44BF-A51F-7FA3CCCF967D}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
