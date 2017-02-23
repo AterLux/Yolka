@@ -33,9 +33,12 @@ const static PROGMEM uint16_t sin_table[] = {
     64277, 64354, 64429, 64501, 64571, 64639, 64704, 64766, 64827, 64884, 64940, 64993, 65043, 65091, 65137, 65180,
     65220, 65259, 65294, 65328, 65358, 65387, 65413, 65436, 65457, 65476, 65492, 65505, 65516, 65525, 65531, 65535
  };
-  
+
+/* Возвращает интерполированное табличное значение синуса, на основе 16 битного аргумента, диапазон значений которого 
+ соответствует полному периоду синуса. Результат домножается на заданный множитель.
+ эквивалентно round(sin(2.0 * M_PI * (period / 65536)) * scaler)
+ */
 static int16_t sin_t(uint16_t period, int16_t scaler) {
-  // эквивалентно return round(sin(2.0 * M_PI * (period / 65536)) * scaler)
   uint16_t tabpos = (period >> 6) & 511;
   uint8_t tabsub = period & 63;
   if (tabpos == 256) return (period & 0x8000) ? -scaler : scaler;
@@ -59,6 +62,13 @@ static int16_t sin_t(uint16_t period, int16_t scaler) {
   return (period & 0x8000) ? -res : res;
 }
 
+/* конвертирует значения оттенка (h) и яркости (b) в rgb
+  h - 8-битное циклическое значение, задающее оттенок (0 соответствует красному, 85 (256 / 3) - зелёному, 171 (256 * 2/3)- синему. 
+  Промежуточные значения - промежуточным цветам.
+  Следует учесть что цвета выводятся на ленту в последовательности, как они перечислены в структуре led_rec. 
+  Если последовательность цветов у подключенной ленты отличается, то полученный цвет также будет отличаться.
+  b - яроксть, от 0 (чёрный) до 255 (полная яркость)
+*/
 void hb(uint8_t h, uint8_t b, led_rec * led) {
   uint16_t th = h * 6;
   uint8_t a = ((uint8_t)th * b + 128) >> 8;
@@ -72,6 +82,14 @@ void hb(uint8_t h, uint8_t b, led_rec * led) {
   }
 }
 
+/* конвертирует значения оттенка (h), насыщенности (s) и яркости (b) в rgb
+  h - 8-битное циклическое значение, задающее оттенок (0 соответствует красному, 85 (256 / 3) - зелёному, 171 (256 * 2/3)- синему. 
+  Промежуточные значения - промежуточным цветам.
+  Следует учесть что цвета выводятся на ленту в последовательности, как они перечислены в структуре led_rec. 
+  Если последовательность цветов у подключенной ленты отличается, то полученный цвет также будет отличаться.
+  s - насыщенность цвета (разница между самой яркой и самой слабой компонентами rgb) 0 соответствует серому цвету, 255 - полностью насыщенному
+  b - яроксть, от 0 (чёрный) до 255 (полная яркость)
+*/
 void hsb(uint8_t h, uint8_t s, uint8_t b, led_rec * led) {
   uint16_t th = h * 6;
   uint8_t z = ((255 - s) * b + 128) >> 8; // Нулевая точка
@@ -86,6 +104,29 @@ void hsb(uint8_t h, uint8_t s, uint8_t b, led_rec * led) {
     default: led->r = b; led->g = z; led->b = b - a; 
   }
 }
+
+
+/* конвертирует значения оттенка (h) и яркости (b) в rgb с учётом пересвета
+  h - 8-битное циклическое значение, задающее оттенок (0 соответствует красному, 85 (256 / 3) - зелёному, 171 (256 * 2/3)- синему. 
+  Промежуточные значения - промежуточным цветам.
+  Следует учесть что цвета выводятся на ленту в последовательности, как они перечислены в структуре led_rec. 
+  Если последовательность цветов у подключенной ленты отличается, то полученный цвет также будет отличаться.
+  b - яроксть, значения от 0 (чёрный) до 255 (полная яркость) задают обычную яркость. Значения от 256 до 510 задают пересвет (т.е. приближение к полностью белому). 
+     Значения 511 и более соответствуют чистому белому цвету
+*/
+void hbover(uint8_t h, uint16_t b, led_rec * led) {
+  uint8_t rb;
+  uint8_t rs;
+  if (b > 255) {
+    rb = 255;
+    rs = (b > 510) ? 0 : 510 - b;
+  } else {
+    rb = b;
+    rs = 255;
+  }
+  hsb(h, rs, rb, led);
+}
+
 
 void blur() {
   led_rec * led = &mem.leds[0];
@@ -155,19 +196,11 @@ void clear() {
     *(ptr++) = 0;
   }
 }  
-  
-void hbover(uint8_t h, uint16_t b, led_rec * led) {
-  uint8_t rb;
-  uint8_t rs;
-  if (b > 255) {
-    rb = 255;
-    rs = (b > 510) ? 0 : 510 - b;
-  } else {
-    rb = b;
-    rs = 255;
-  }
-  hsb(h, rs, rb, led);
-}
+
+
+/***********/
+/* ЭФФЕКТЫ */
+/***********/  
 
 void wave() {
   uint16_t p = random16();
@@ -329,9 +362,14 @@ void meteors() {
       if (free_met < 255) {
         mets[free_met].phase = 256;
         mets[free_met].direction = (random8() & 1) ? 1 : -1;
-        mets[free_met].size = random(led_num >> 1) + (led_num >> 3);
-        mets[free_met].start = randomw(led_num - mets[free_met].size);
-        if (mets[free_met].direction < 0) mets[free_met].start += mets[free_met].size;
+        uint16_t sz = random(led_num >> 1) + (led_num >> 3) - 1;
+        uint16_t mid = randomw(led_num);
+        uint16_t ed = mid + (sz >> 1);
+        uint16_t st = (ed > sz) ? (ed - sz) : 0;
+        if (ed >= led_num) ed = led_num - 1;
+        
+        mets[free_met].size = ed - st + 1;
+        mets[free_met].start = (mets[free_met].direction < 0) ? ed : st;
         mets[free_met].phase_dec = (8192 + randomw(16384)) / led_num;
         mets[free_met].first_color = random16();
         mets[free_met].color_twist = random16();
@@ -375,6 +413,48 @@ void interference() {
       ampph += ampphstep;
     }
   } while (sync_out(&mem.leds));
+}
+
+void metamorphosis() {
+  uint16_t init_seed = 0;
+  uint16_t init_hue = 0;
+  uint16_t p_cur = 65535;
+  uint16_t led_step = 0;
+  uint16_t calced_for_lednum = 65535;
+  int16_t h_twist = 0;
+  do {
+    if (calced_for_lednum != led_num) {
+      led_step = (led_num > 0) ? (1600 / led_num) : 0;
+      calced_for_lednum = led_num;
+    }
+    if (p_cur >= 5000) {
+      p_cur = 0;
+      init_seed = random16();
+      init_hue += randomw(10923) + randomw(10923) + randomw(10923) + randomw(10923) + 5461;
+      uint8_t r = random8();
+      if (r >= 192) {
+        h_twist = randomw(4096) + randomw(4096) + randomw(4096) + randomw(4096) - 8192;
+      } else {
+        h_twist = 0;
+      }
+    }
+    p_cur += 13;
+    uint16_t p = 0;
+    uint16_t rnd = init_seed;
+    uint16_t h = init_hue;
+    for (int16_t i = led_num - 1; i >= 0; i--) {
+      rnd = (uint16_t)(rnd + 1) * 53093U;
+      uint16_t px = p + (rnd >> 8);
+      if (p_cur >= px) {
+        uint16_t d = (p_cur - px);
+        hbover(h >> 8, (d > 384) ? 255 : (640 - d), &mem.leds[i]);
+      }
+      p += led_step;
+      h += h_twist;
+    }
+  } while (sync_out(&mem.leds));
+  
+  
   
 }
 
@@ -385,6 +465,7 @@ PROGMEM const char str_drops[] = "Drops";
 PROGMEM const char str_twist[] = "Twist";
 PROGMEM const char str_meteors[] = "Meteors";
 PROGMEM const char str_interference[] = "Interference";
+PROGMEM const char str_metamorphosis[] = "Metamorphosis";
 
 PROGMEM const EffectDesc effects_list[] = {
   {str_wave, wave},
@@ -394,6 +475,7 @@ PROGMEM const EffectDesc effects_list[] = {
   {str_twist, twist},
   {str_meteors, meteors},
   {str_interference, interference},
+  {str_metamorphosis, metamorphosis}
 };  
 
 const uint8_t num_effects = sizeof(effects_list) / sizeof(EffectDesc);
