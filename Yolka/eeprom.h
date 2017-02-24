@@ -16,9 +16,9 @@ uint8_t eeprom_read(uint16_t address, uint8_t return_if_0xFF);
 
 void eeprom_write(uint16_t address, uint8_t data);
 
-int16_t eeprom_read_int16(uint16_t address, int16_t return_if_0xFFFF);
+uint16_t eeprom_read_uint16(uint16_t address, uint16_t return_if_0xFFFF);
 
-void eeprom_write_int16(uint16_t address, int16_t data);
+void eeprom_write_uint16(uint16_t address, uint16_t data);
 
 
 

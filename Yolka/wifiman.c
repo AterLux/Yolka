@@ -518,7 +518,7 @@ uint8_t wifiman_pull() {
     case WIFIMAN_INIT_CWSAP:
     case WIFIMAN_INIT_CWJAP_SET:
       if (((wifiman_state == WIFIMAN_INIT_CWSAP) && check_or_restart(parsed)) || ((wifiman_state != WIFIMAN_INIT_CWSAP) && check_or_init_ap(parsed))) {
-        uint16_t port = eeprom_read_int16(EE_PORT, DEFAULT_PORT);
+        uint16_t port = eeprom_read_uint16(EE_PORT, DEFAULT_PORT);
         send_pgmz(&str_cipserver_a);
         send_num(port);
         send_crlf();

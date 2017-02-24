@@ -372,7 +372,7 @@ void meteors() {
         mets[free_met].start = (mets[free_met].direction < 0) ? ed : st;
         mets[free_met].phase_dec = (8192 + randomw(16384)) / led_num;
         mets[free_met].first_color = random16();
-        mets[free_met].color_twist = random16();
+        mets[free_met].color_twist = randomw(16384) + randomw(16384) + randomw(16384) + randomw(16384) - 32768;
         time_to_met = random(50);
       }
     } else {
@@ -430,7 +430,7 @@ void metamorphosis() {
     if (p_cur >= 5000) {
       p_cur = 0;
       init_seed = random16();
-      init_hue += randomw(10923) + randomw(10923) + randomw(10923) + randomw(10923) + 5461;
+      init_hue += randomw(27307) + randomw(27307) + 5461;
       uint8_t r = random8();
       if (r >= 192) {
         h_twist = randomw(4096) + randomw(4096) + randomw(4096) + randomw(4096) - 8192;

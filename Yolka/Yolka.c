@@ -499,11 +499,21 @@ uint8_t wait_frame() {
                         }
                       }                      
                       switch (pn) {
-                        case PARAM_LED_NUM: led_num = (l && (sendbuf[3] | sendbuf[4]) && ((sendbuf[3] | (sendbuf[4] << 8)) <= MAX_LED_COUNT)) ? (sendbuf[3] | (sendbuf[4] << 8)) : DEFAULT_LED_COUNT; 
-                        case PARAM_EFFECT_TIME: par_effect_time = (l && sendbuf[3] && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_EFFECT_TIME; break;
-                        case PARAM_EFFECT_TIME_ADD: par_effect_time_add = (l && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_EFFECT_TIME_ADD; break;
-                        case PARAM_VOLTAGE_ADJUST: adj_voltage = (l && ((sendbuf[3] & sendbuf[4]) < 255)) ? (sendbuf[3] | (sendbuf[4] << 8)) : DEFAULT_VOLTAGE_ADJUST; break;
-                        case PARAM_TEMP_ADJUST: adj_temp = (l && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_TEMP_ADJUST; break;
+                        case PARAM_LED_NUM: 
+                          led_num = (l && (sendbuf[3] | sendbuf[4]) && ((sendbuf[3] | (sendbuf[4] << 8)) <= MAX_LED_COUNT)) ? (sendbuf[3] | (sendbuf[4] << 8)) : DEFAULT_LED_COUNT; 
+                          break;
+                        case PARAM_EFFECT_TIME: 
+                          par_effect_time = (l && sendbuf[3] && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_EFFECT_TIME; 
+                          break;
+                        case PARAM_EFFECT_TIME_ADD: 
+                          par_effect_time_add = (l && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_EFFECT_TIME_ADD; 
+                          break;
+                        case PARAM_VOLTAGE_ADJUST: 
+                          adj_voltage = (l && ((sendbuf[3] & sendbuf[4]) < 255)) ? (sendbuf[3] | (sendbuf[4] << 8)) : DEFAULT_VOLTAGE_ADJUST; 
+                          break;
+                        case PARAM_TEMP_ADJUST: 
+                          adj_temp = (l && (sendbuf[3] < 255)) ? sendbuf[3] : DEFAULT_TEMP_ADJUST; 
+                          break;
                       }                    
                       wifiman_send_buf(linkid, &sendbuf, 3);
                     }                      
@@ -753,11 +763,11 @@ int main(void)
   
   wifiman_init();
   
-  random_seed.lo16 = eeprom_read_int16(EE_RANDOM_SEED, 0xFFFF);
-  random_seed.hi16 = eeprom_read_int16(EE_RANDOM_SEED + 2, 0xFFFF);
+  random_seed.lo16 = eeprom_read_uint16(EE_RANDOM_SEED, 0xFFFF);
+  random_seed.hi16 = eeprom_read_uint16(EE_RANDOM_SEED + 2, 0xFFFF);
   uint32_t seedplus = random_seed.u32 + 3571;
-  eeprom_write(EE_RANDOM_SEED, seedplus);
-  eeprom_write(EE_RANDOM_SEED + 2, seedplus >> 16);
+  eeprom_write_uint16(EE_RANDOM_SEED, seedplus);
+  eeprom_write_uint16(EE_RANDOM_SEED + 2, seedplus >> 16);
   
   ADMUX = ADMUX_VOLTAGE;
   ADCSRA = (1 << ADEN) | (1 << ADPS1); // На скорости 4 Мгц АЦП нам навыдаёт всякого мусора
@@ -772,10 +782,10 @@ int main(void)
   }
   random_seed.u32 ^= seedxor;
   
-  adj_voltage = (uint16_t)eeprom_read_int16(EE_VOLTAGE_ADJUST, DEFAULT_VOLTAGE_ADJUST);
+  adj_voltage = eeprom_read_uint16(EE_VOLTAGE_ADJUST, DEFAULT_VOLTAGE_ADJUST);
   adj_temp = eeprom_read(EE_TEMP_ADJUST, DEFAULT_TEMP_ADJUST);
   
-  led_num = eeprom_read_int16(EE_LED_NUM, DEFAULT_LED_COUNT);
+  led_num = eeprom_read_uint16(EE_LED_NUM, DEFAULT_LED_COUNT);
   
   if (led_num > MAX_LED_COUNT) {
     eeprom_write(EE_LED_NUM + 1, 0);
@@ -784,7 +794,7 @@ int main(void)
   
   par_effect_time = eeprom_read(EE_EFFECT_TIME, DEFAULT_EFFECT_TIME);
   if (par_effect_time < 1) par_effect_time = DEFAULT_EFFECT_TIME;
-  par_effect_time_add = eeprom_read(EE_EFFECT_TIME, DEFAULT_EFFECT_TIME_ADD);
+  par_effect_time_add = eeprom_read(EE_EFFECT_TIME_ADD, DEFAULT_EFFECT_TIME_ADD);
   
   
   ADCSRA = (1 << ADEN) | (1 << ADSC) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // прескалер 1:128 - 125 000 кГц ~= 9000 замеров в секунду
